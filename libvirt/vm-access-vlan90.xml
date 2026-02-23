@@ -1,0 +1,7 @@
+<interface type='bridge'>
+  <source bridge='br0'/>
+  <model type='virtio'/>
+  <vlan>
+    <tag id='90'/>
+  </vlan>
+</interface>

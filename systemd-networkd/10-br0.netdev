@@ -1,0 +1,9 @@
+[NetDev]
+Name=br0
+Kind=bridge
+
+[Bridge]
+VLANFiltering=yes
+STP=no
+
+

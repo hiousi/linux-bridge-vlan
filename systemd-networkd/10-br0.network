@@ -1,0 +1,10 @@
+[Match]
+Name=br0
+
+[Network]
+VLAN=br0.90
+
+[BridgeVLAN]
+VLAN=90
+Self=yes
+

@@ -1,0 +1,9 @@
+[Match]
+Name=br0.90
+
+[Network]
+Address=10.70.90.5/24
+Gateway=10.70.90.1
+DNS=10.70.90.1
+
+

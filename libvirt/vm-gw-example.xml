@@ -1,0 +1,54 @@
+<interface type="bridge">
+  <mac address="52:54:7f:00:10:00"/>
+  <source bridge="br0"/>
+  <vlan>
+    <tag id="10"/>
+  </vlan>
+  <model type="virtio"/>
+  <address type="pci" domain="0x0000" bus="0x07" slot="0x00" function="0x0"/>
+</interface>
+<interface type="bridge">
+  <mac address="52:54:7f:00:20:00"/>
+  <source bridge="br0"/>
+  <vlan>
+    <tag id="20"/>
+  </vlan>
+  <model type="virtio"/>
+  <address type="pci" domain="0x0000" bus="0x09" slot="0x00" function="0x0"/>
+</interface>
+<interface type="bridge">
+  <mac address="52:54:7f:00:40:00"/>
+  <source bridge="br0"/>
+  <vlan>
+    <tag id="40"/>
+  </vlan>
+  <model type="virtio"/>
+  <address type="pci" domain="0x0000" bus="0x08" slot="0x00" function="0x0"/>
+</interface>
+<interface type="bridge">
+  <mac address="52:54:7f:00:90:00"/>
+  <source bridge="br0"/>
+  <vlan>
+    <tag id="90"/>
+  </vlan>
+  <model type="virtio"/>
+  <address type="pci" domain="0x0000" bus="0x01" slot="0x00" function="0x0"/>
+</interface>
+<interface type="bridge">
+  <mac address="52:54:7f:01:10:00"/>
+  <source bridge="br0"/>
+  <vlan>
+    <tag id="110"/>
+  </vlan>
+  <model type="virtio"/>
+  <address type="pci" domain="0x0000" bus="0x0b" slot="0x00" function="0x0"/>
+</interface>
+<interface type="bridge">
+  <mac address="52:54:7f:01:20:00"/>
+  <source bridge="br0"/>
+  <vlan>
+    <tag id="120"/>
+  </vlan>
+  <model type="virtio"/>
+  <address type="pci" domain="0x0000" bus="0x0a" slot="0x00" function="0x0"/>
+</interface>

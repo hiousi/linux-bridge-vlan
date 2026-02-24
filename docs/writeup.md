@@ -1,8 +1,9 @@
 # Building a VLAN-Aware Linux Bridge with `systemd-networkd` (Host + VLAN isolated VMs)
 
-I migrated a host from legacy/implicit networking to a fully declarative `systemd-networkd` configuration.
+I migrated a host from legacy/implicit networking to a fully declarative `systemd-networkd` with VLAN-aware bridge  configuration.
 
-This is not about chasing novelty (oh really?). It’s about building a network stack that is:
+VLAN‑aware bridge filtering is a hot topic in [FreeBSD 15 discussions](https://forums.freebsd.org/threads/freebsd-15-bridges-vlans-and-jails-nice.101719/) this write‑up focuses on the **Linux implementation**.
+It's not about chasing novelty. It’s about building a network stack that is:
 
 * deterministic at boot
 * readable months later

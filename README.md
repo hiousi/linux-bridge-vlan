@@ -1,21 +1,19 @@
 # VLAN-aware Linux bridge with systemd-networkd (and isolated VMs)
 
-This repository demonstrates a reproducible, version-controlled Linux networking pattern using the in-kernel bridge with VLAN filtering.
+I got tired of the "spaghetti" that comes with creating a dozen separate br0.10, br0.20 interfaces on my KVM hosts. I also wanted to move away from Open vSwitch (OVS) complexity while still getting proper VLAN isolation for my VMs.
 
-It turns a virtualization host into:
-
-+ a small VLAN-aware switch (br0)
-+ an SVI-like routed interface for a management VLAN (br0.90)
-+ a clean attachment point for VLAN-isolated VMs (via libvirt VLAN tags)
+This repo is a reproducible pattern for using the VLAN-aware Linux bridge. It treats a Linux host like a managed switch: one bridge (br0) that handles all the tagging, filtering, and trunking directly in the kernel fast path.
 
 The goal is operational clarity, no SDN overlays, no external switching daemons, just explicit architecture built on kernel primitives.
 
-**Architecture overview**
-- `eth0` as an 802.1Q trunk
-- `br0` as a VLAN-aware Linux bridge (`VLANFiltering=yes`)
-- VLAN 90 routed on the host via `br0.90`
-- VMs connected to `br0` with VLAN separation enforced on the host side (libvirt VLAN tags)
-- Validation commands included
+
+
+**Architecture**
+- physical `eth0` as an 802.1Q trunk
+- bridge `br0` as a VLAN-aware Linux bridge (`VLANFiltering=yes`)
+- managment VLAN 90 routed on the host via `br0.90`
+- isolqtion of guest VMs connected to `br0` with VLAN separation enforced on the host side (libvirt VLAN tags)
+
 
 
 
@@ -23,7 +21,7 @@ The goal is operational clarity, no SDN overlays, no external switching daemons,
 ## Full Documentation
 
 The complete architectural explanation and configuration walkthrough is here:   
-→ [Complete Architecture and Configuration Guide](docs/writeup.md)
+→ [Complete Architecture Guide](docs/writeup.md)
 
 
 ## Network Schema

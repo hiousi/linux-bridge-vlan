@@ -1,21 +1,34 @@
-# VLAN-aware Linux bridge with systemd-networkd (host + VLAN-isolated VMs)
+# VLAN-aware Linux bridge with systemd-networkd (and isolated VMs)
 
-This repo demonstrates a deterministic, version-controlled Linux networking setup using `systemd-networkd` and VLAN-aware brige:
+This repository demonstrates a reproducible, version-controlled Linux networking pattern using the in-kernel bridge with VLAN filtering.
 
+It turns a virtualization host into:
+
++ a small VLAN-aware switch (br0)
++ an SVI-like routed interface for a management VLAN (br0.90)
++ a clean attachment point for VLAN-isolated VMs (via libvirt VLAN tags)
+
+The goal is operational clarity, no SDN overlays, no external switching daemons, just explicit architecture built on kernel primitives.
+
+**Architecture overview**
 - `eth0` as an 802.1Q trunk
 - `br0` as a VLAN-aware Linux bridge (`VLANFiltering=yes`)
 - VLAN 90 routed on the host via `br0.90`
 - VMs connected to `br0` with VLAN separation enforced on the host side (libvirt VLAN tags)
 - Validation commands included
 
+
+
+
+## Full Documentation
+
+The complete architectural explanation and configuration walkthrough is here:   
+→ [Complete Architecture and Configuration Guide](docs/writeup.md)
+
+
+## Network Schema
+
 ![Network schema](docs/schema.png)
-
-
-
-## Deep dive
-
-VLAN‑aware bridge filtering is a hot topic in FreeBSD 15 discussions; this write‑up shows the Linux implementation.
-[`docs/writeup.md`](docs/writeup.md)
 
 ## Why this exists (DevOps angle)
 

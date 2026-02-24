@@ -1,28 +1,34 @@
-# Building a VLAN-Aware Linux Bridge with `systemd-networkd` (Host + VLAN isolated VMs)
+# Building a VLAN-Aware Linux Bridge with `systemd-networkd` and isolated VMs
 
-I migrated a host from legacy/implicit networking to a fully declarative `systemd-networkd` with VLAN-aware bridge  configuration.
+This write-up explains a reproducible pattern for building a VLAN-aware Linux bridge using `systemd-networkd` , focusing on deterministic boot-time configuration, in-kernel VLAN filtering, and clear DevOps automation paths. It also shows how to segment networks for VMs, including “SVI-like” host routing for a management VLAN, without relying on SDN frameworks.
 
-VLAN‑aware bridge filtering is a hot topic in [FreeBSD 15 discussions](https://forums.freebsd.org/threads/freebsd-15-bridges-vlans-and-jails-nice.101719/) this write‑up focuses on the **Linux implementation**.
-It's not about chasing novelty. It’s about building a network stack that is:
+VLAN-aware bridge filtering has recently been [discussed](https://forums.freebsd.org/threads/freebsd-15-bridges-vlans-and-jails-nice.101719/) in the context of FreeBSD 15 bridges and jails.
+This document focuses on the **Linux implementation** and the operational implications of using the kernel bridge as a first-class switching component, without introducing SDN overlays or additional control planes.
 
-* deterministic at boot
-* readable months later
-* version-controlled
-* aligned with how the Linux kernel actually switches packets
+The goal is not novelty. It is operational clarity.
+
+This model keeps switching inside the kernel, routing explicit, and segmentation enforceable at the bridge layer.
+
+
+# Git repository
+
+Full configuration files and examples are available here:
+
+👉 GitHub repository:
+https://github.com/hiousi/linux-bridge-vlan
+
+# Architecture summary
+
 
 The design is straightforward:
 
 * `eth0` is an **802.1Q trunk** to a switch or vSwitch.
 * `br0` is a **VLAN-aware Linux bridge** (`VLANFiltering=yes`)
-* VLAN **90** is routed on the host as `br0.90`
-* VMs attach to `br0` via `virtio`, with VLAN separation enforced on the host side
-* A dedicated VM provides routing + firewalling, with WAN isolated on VLAN 110/120
-
-Because the configuration is plain text, it is also easy to automate (Ansible/GitOps): template, deploy, validate, roll back.
-
-
-
-# Target Architecture
+* VLAN **90** is routed on the host as `br0.90` (SVI-like behavior)
+* VMs attach to `br0` via `virtio`
+* VLAN separation enforced at the bridge level
+* A dedicated VM provides routing + firewalling
+* WAN isolated on VLAN 110/120
 
 ```text
               ┌─────────────────────┐
@@ -49,6 +55,32 @@ Because the configuration is plain text, it is also easy to automate (Ansible/Gi
     │  10.70.90.5/24  gw 10.70.90.1            │
     └──────────────────────────────────────────┘
 ```
+
+
+Switching remains inside the kernel fast path.
+Routing is explicit.
+Policy lives in the firewall VM.
+
+# DevOps and Automation Perspective
+
+Because the entire configuration is declarative and file-based:
+
++ it can be templated (Ansible, Nix, Terraform provisioners, etc.)
++ it can be version-controlled and code-reviewed
++ it can be validated pre-deployment (CI linting / static checks)
++ it supports controlled rollbacks
++ it avoids configuration drift between hosts
+
+The bridge becomes infrastructure code, not a mutable runtime artifact.
+
+This approach is particularly relevant for:
++ bare-metal virtualization hosts
++ lab environments that need repeatability
++ small clusters without full SDN stacks
++ operators who prefer kernel primitives over orchestration-heavy networking layers
+
+
+
 
 
 
@@ -100,7 +132,7 @@ All files in:
 /etc/systemd/network/
 ```
 
-## 1) Bridge Device
+## 1. Bridge Device
 
 ### `10-br0.netdev`
 
@@ -119,9 +151,9 @@ Notes:
 * `VLANFiltering=yes` is the key: per-port VLAN enforcement happens in the kernel.
 * `STP=no` assumes you have no L2 loops. If you have redundant links, reconsider.
 
----
 
-## 2) Bridge Network + “Self VLAN” for L3
+
+## 2. Bridge Network + “Self VLAN” for L3
 
 ### `10-br0.network`
 
@@ -141,9 +173,9 @@ Self=yes
 
 `Self=yes` ensures VLAN 90 is allowed on the bridge device itself, not just on its ports — so the `br0.90` L3 interface actually receives traffic.
 
----
 
-## 3) Physical Trunk Port
+
+## 3. Physical Trunk Port
 
 ### `10-eth0.network`
 
@@ -167,9 +199,9 @@ This defines `eth0` as a tagged trunk for those VLANs.
 
 No native VLAN is defined here (good: fewer surprises).
 
----
 
-## 4) Routed VLAN Interface (SVI-like)
+
+## 4. Routed VLAN Interface (SVI-like)
 
 ### `20-br0.90.netdev`
 
@@ -311,18 +343,27 @@ If the firewall VM is the policy point:
 
 # Why this is interesting
 
-Not “VLANs on Linux”, that’s old ;-)
+Not because VLANs on Linux are new.
+But because this is a clean, modern composition of:
 
-But because this is a clean, modern pattern:
+* VLAN-aware kernel bridge
+* declarative systemd-networkd configuration
+* SVI-like routed VLAN on the host
+* VM segmentation implemented as access ports
+* explicit LAN↔WAN policy via a firewall VM
+* infrastructure-as-code networking
 
-* VLAN-aware kernel bridge configured via systemd-networkd
-* SVI-like routed VLAN on the host (br0.90)
-* VM segmentation implemented as access ports (VLAN-pinned vNICs)
-* a router/firewall VM controlling LAN↔WAN policy with WAN isolated on VLAN 110/120
-* easy to automate and reproduce
-
-No magic layers. Just explicit architecture.
+No hidden abstractions.
+No opaque control planes.
+Just explicit architecture.
 
 # Open the discussion
 
-If you’re using a comparable pattern, especially with bonding, multi-host trunks, or higher throughput workloads: I’d welcome comparison notes and critique. Any edge cases around VLAN filtering and libvirt I should be aware of?
+I’m particularly interested in:
+
+* edge cases around VLAN filtering and libvirt
+* bonding / LACP scenarios
+* multi-host trunk consistency
+* performance characteristics under high PPS workloads
+* operational pitfalls others have encountered
+* Constructive critique welcome.
